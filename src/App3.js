@@ -8,18 +8,18 @@ import MyPostList from "./components/MyPosts";
 import Grid from "./Grid";
 import { db } from "./firebase-config";
 import React, { useState, useEffect } from "react";
-import { collection,getDocs, query } from "firebase/firestore";
+import { collection, getDocs, query } from "firebase/firestore";
 
 function App() {
   const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setLoading] = useState(true);
   // const [user, setUser] = useState(null);
   const fetchPosts = async () => {
     try {
       const q = query(collection(db, "posts"));
       const doc = await getDocs(q);
       // console.log(doc.docs[0].id);
-      const data = await doc.docs.map((d) => d.data());
+      const data = doc.docs.map((d) => d.data());
 
       for (var i = 0; i < data.length; i++) {
         data[i].publishedAt = data[i].date;
@@ -28,6 +28,7 @@ function App() {
       }
       delete data.date;
       setPosts(data);
+      setLoading(false);
       // await console.log(data);
     } catch (error) {
       console.error(error);
@@ -39,37 +40,39 @@ function App() {
   }, []);
 
   return (
-    <Admin
-      dataProvider={
-        fakeDataProvider({
-        posts: posts,
-        myposts: posts,
-        }
+    <>
+      {isLoading && <p>Loading....</p>}
+      {!isLoading && (
+        <Admin
+          dataProvider={fakeDataProvider({
+            posts: posts,
+            myposts: posts,
+          })}
+        >
+          <Resource
+            name="posts"
+            list={PostList}
+            create={PostCreate}
+            show={PostShow}
+            edit={PostEdit}
+          />
+          <Resource
+            name="myposts"
+            list={MyPostList}
+            create={PostCreate}
+            show={PostShow}
+            edit={PostEdit}
+          />
+          <Resource
+            name="gridView"
+            list={Grid}
+            create={PostCreate}
+            show={PostShow}
+            edit={PostEdit}
+          />
+        </Admin>
       )}
-    >
-      <Resource
-        name="posts"
-        list={PostList}
-        create={PostCreate}
-        show={PostShow}
-        edit={PostEdit}
-      />
-      <Resource
-        name="myposts"
-        list={MyPostList}
-        create={PostCreate}
-        show={PostShow}
-        edit={PostEdit}
-      />
-      <Resource
-        name="gridView"
-        list={Grid}
-        create={PostCreate}
-        show={PostShow}
-        edit={PostEdit}
-        
-      />
-    </Admin>
+    </>
   );
 }
 
